@@ -1,0 +1,236 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{verbatim}
+
+\usepackage{graphicx}
+\graphicspath{ {./} }
+\usepackage{xspace}
+\usepackage{textcomp}
+
+\definecolor{light-gray}{gray}{0.85}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamercolor{emph}{fg=blue}
+\renewcommand<>{\emph}[1]{%
+  {\usebeamercolor[fg]{emph}\only#2{\itshape}#1}%
+}
+
+\definecolor{noteBackgroundColor}{RGB}{251,251,119}
+\definecolor{noteBorderColor}{RGB}{168,0,54}
+
+
+\title{Lambdas in C++}
+\date{\today}
+\author{Pan Xiaoyue}
+\institute{Smarkets}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\defverbatim[colored]\lstSimpleLambda{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}]
+auto simple_lambda = [](int x) { return x+1; };
+\end{lstlisting}
+}
+
+\defverbatim[colored]\lstInvokeLambda{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}]
+int x = simple_lambda(100);
+std::cout << "x:" << x << "\n";
+\end{lstlisting}
+}
+
+\defverbatim[colored]\lstI{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily]
+std::vector<int> a{0,1,2,3,4,5,6};
+//lambda1 captures a by value
+auto lambda1 = [a](int x) { return a[x]; };
+//lambda2 captures a by reference
+auto lambda2 = [&a](int x) { a[x]++; };
+\end{lstlisting}
+}
+
+\defverbatim[colored]\lstImplicitLambda{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily]
+//Assume we have std::vector<int> a{0,1,2,3,4,5,6};
+auto lambda = [&a](int x) { a[x]++; };
+\end{lstlisting}
+}
+
+\defverbatim[colored]\lstII{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily]
+struct ExplicitLambda {
+	// captures go here
+	std::vector<int> &a;
+	ExplicitLambda (std::vector<int> &vec): a(vec) {}
+	// body of the lambda goes into a callable operator
+	void operator() (int x) {
+		a[x]++;
+	}
+};
+\end{lstlisting}
+}
+
+\defverbatim[colored]\lstWhyNeedCaptures{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily]
+std::vector<int> a{0,1,2,3,4,5,6};
+auto lambda2 = [&a](int x) { a[x]++; };
+
+std::vector<int> indices{0,3};
+//std::for_each (lambda2's caller) can't access a
+std::for_each(indices.begin(), indices.end(), lambda2);
+\end{lstlisting}
+}
+\defverbatim[colored]\lstCallableObject{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}]
+a_callable_object();
+another_callable_object(args);
+\end{lstlisting}
+}
+
+\defverbatim[colored]\lstSquirrelStruct{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}, showstringspaces=false]
+struct Squirrel {
+	std::string name;
+	int age;
+	Squirrel(const std::string &name, int age): 
+		name(name), age(age){}
+};
+Squirrel new_squirrel("Charlie", 5);
+\end{lstlisting}
+}
+
+
+\defverbatim[colored]\lstCallSquirrel{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}]
+Squirrel new_squirrel("Charlie", 5);
+new_squirrel();
+\end{lstlisting}
+}
+
+\begin{frame}
+\frametitle{An lambda example}
+
+\begin{itemize}
+\item A lambda is an anonymous function, e.g., \lstSimpleLambda
+
+\item Call the lambda: \lstInvokeLambda
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Exercise: lambda syntax}
+1. Write a lambda which prints an integer.
+\lstinputlisting [language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily]
+{../code_on_slides/p3.cpp}
+2. Generalise it to not just integer
+\end{frame}
+
+
+\begin{frame}
+\frametitle{C++'s lambda definition}
+Syntax: [ captures ] ( params ) $\rightarrow$ ret \{ body \}
+\begin{itemize}
+	\item 
+	{
+	captures: can be both by \emph{value} and by \emph{reference}
+		\lstI
+	}
+	\item {What's the result of \emph{\ttfamily{lambda1(0)}} and \emph{\ttfamily{lambda2(0)}}?}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} 
+\frametitle{Why do we need captures?}
+\begin{itemize}
+	\item 
+	{
+	Because the code that calls the lambda \emph{may not have access} to the needed variables
+	\lstWhyNeedCaptures
+	}	
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Exercise: captures}
+\lstinputlisting [language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily]
+{../code_on_slides/p6.cpp}
+\end{frame}
+
+\begin{frame}
+\frametitle{A little detour: structs and classes}
+\begin{itemize}
+	\item They are almost the same (diff: default accessibility of member variables and functions)
+	\lstSquirrelStruct
+	\item Constructors and member initializer lists
+\end{itemize}
+\end{frame}
+%---------------------------------------------------------
+
+\begin{frame}{Callable object}
+\begin{itemize}
+	\item A callable object is an object that \emph{can be called like a function}, e.g., 
+	\lstCallableObject
+	\item How do we make an object callable? e.g., 
+	\lstCallSquirrel
+	\begin{itemize}
+		\item By overloading the operator \emph{()}.
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame} 
+\frametitle{Make squirrels callable}
+\begin{itemize}
+\item Overload \emph{()} in the Squirrel struct
+\lstinputlisting [language=C++, basicstyle=\tiny\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily,showstringspaces=false]
+{../code_on_slides/p9.cpp}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Why do we talk about struct and callable object?}
+\begin{itemize}
+	\item A lambda is a callable object.
+\end{itemize}
+
+The lambda in
+\lstImplicitLambda
+ is equivalent to
+ \centering{\lstII}
+\begin{itemize}
+	\item {lambda(0) is the same as calling an object of the struct with 0.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Exercise: sort the squirrels}
+Write a lambda which can be used by std::sort to sort Squirrel objects by age/name.
+\lstinputlisting [language=C++, basicstyle=\tiny\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}, commentstyle=\color{blue}\ttfamily]
+{../code_on_slides/p11.cpp}
+\end{frame}
+
+\begin{frame}
+\frametitle{Exercise: one way to shoot yourself in the foot} 
+What does this code print?
+\lstinputlisting [language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},showstringspaces=false]
+{../code_on_slides/p12.cpp}
+\end{frame}
+
+\begin{frame}
+\frametitle{Exercise: if you find the exercises too simple} 
+What's the output of this code? 
+(Taken from \href{https://en.cppreference.com/w/cpp/language/lambda}{\color{blue}{\underline{https://en.cppreference.com/w/cpp/language/lambda}}}
+)
+\lstinputlisting [language=C++, basicstyle=\tiny\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}, showstringspaces=false]
+{../code_on_slides/p13.cpp}
+\end{frame}
+\end{document}

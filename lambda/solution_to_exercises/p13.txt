@@ -1,0 +1,19 @@
+		on creation
+m1		captured a = 1, b = 1, c = 1 (b and c captured by reference)
+m2		captured a = 1, b = 2, c = 2 (c is captured by reference)
+----------------------------------------------------------------------	
+		after statement a = 2; b =2; c=2;
+m1		captured a = 1, b = 2, c = 2
+main	a = 2, b = 2, c = 2
+----------------------------------------------------------------------	
+ 		after statement a = 3; b = 3; c = 3;
+m1		captured a = 3, b = 3, c = 3
+main	a = 2, b = 3, c = 3
+----------------------------------------------------------------------	
+		after m2();
+m2		capture  a = 1, b = 2, c = 3 prints 1 2 3
+----------------------------------------------------------------------	
+		after a = 4, b = 4, c = 4
+m2		a = 4, b = 4, c = 4
+m1		a = 3, b = 3, c = 4
+main	a = 2, b = 3, c = 4 prints 2 3 4
