@@ -1,0 +1,78 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{verbatim}
+
+\usepackage{graphicx}
+\graphicspath{ {./} }
+\usepackage{xspace}
+\usepackage{textcomp}
+
+\definecolor{light-gray}{gray}{0.85}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamercolor{emph}{fg=blue}
+\renewcommand<>{\emph}[1]{%
+  {\usebeamercolor[fg]{emph}\only#2{\itshape}#1}%
+}
+
+\definecolor{noteBackgroundColor}{RGB}{251,251,119}
+\definecolor{noteBorderColor}{RGB}{168,0,54}
+
+
+\title{RAII: resource allocation is initialisation}
+\date{\today}
+\author{Pan Xiaoyue}
+\institute{Smarkets}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\defverbatim[colored]\lstNewDelete{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}]
+int *p{new int{1}};
+...
+delete p;
+\end{lstlisting}
+}
+\defverbatim[colored]\lstUniquePtr{
+\begin{lstlisting}[language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray}]
+std::unique_ptr<int> p{new int{1}};
+\end{lstlisting}
+}
+
+
+\begin{frame}
+  \frametitle{A first example}
+\begin{itemize}
+  %\item In C++, you can know when resources are destroyed (if you want)
+  \item Resource allocation and deallocation
+  \lstNewDelete
+  \item If an exception is throw during ..., memory leak!
+  \item Is there a better way? Yes!
+  \lstUniquePtr
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{RAII: resource allocation is initialisation}
+  \begin{itemize}
+    \item resource allocation: done in object initialisation (constructor)
+    \item resource deallocation: done in object destuction (destructor)
+    \item Advantage: we never need to write \emph{delete p} again!
+  \end{itemize}
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Exercise: lambda syntax}
+%1. Write a lambda which prints an integer.
+%\lstinputlisting [language=C++, basicstyle=\small\ttfamily, keywordstyle=\color{red},tabsize=2, backgroundcolor=\color{light-gray},commentstyle=\color{blue}\ttfamily]
+%%{../code_on_slides/p3.cpp}
+%2. Generalise it to not just integer
+%\end{frame}
+
+\end{document}
